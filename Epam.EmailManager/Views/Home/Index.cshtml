@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Email Manager";
+}
+<div class="container mt-5 text-center">
+    <h1 class="display-4 fw-bold">Email Manager</h1>
+    <p class="lead">Manage your emails with ease</p>
+    <hr class="my-4">
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-info text-center">
+            @TempData["Message"]
+        </div>
+    }
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h5 class="mb-3">Notify Sale Info</h5>
+                <form method="post" action="/Email/SendEmailToAll">
+                    <button type="submit" class="btn btn-primary w-100">Send Mail to All</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="/User/UserRegister" class="btn btn-outline-secondary">Register New User</a>
+    </div>
+</div>

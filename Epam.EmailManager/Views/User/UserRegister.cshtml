@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Register User";
+}
+<div class="container mt-5">
+    <h1 class="text-center">Register a New User</h1>
+    <hr />
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <form method="post" action="/User/RegisterUserAndSendMail">
+                    <div class="mb-3">
+                        <input type="text" name="Name" class="form-control" placeholder="Enter Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" name="Email" class="form-control" placeholder="Enter Email" required />
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Register & Send Welcome Mail</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
