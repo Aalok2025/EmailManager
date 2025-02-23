@@ -24,6 +24,8 @@ namespace Epam.EmailManager.Application.Services
         public EmailService(IConfiguration configuration)
         {
             _emailConfiguration = configuration;
+            // Subscribe the logging method to the event
+            OnEmailSent += _emailLogService.LogEmailDetails;
         }
         public async Task<bool> sendEmailToAllUsers(List<User> users)
         {
@@ -62,8 +64,7 @@ namespace Epam.EmailManager.Application.Services
                             _emailConfiguration["SMTP:Password"]);
 
                         await client.SendAsync(message);
-                        // Log the email
-                        _emailLogService.LogEmailDetails(user.Email, message.Subject, message.Body.ToString());
+                        // Log the email by invoking event which triggers subscribed methods with same signature
                         OnEmailSent?.Invoke(user.Email, message.Subject, message.Body.ToString());
                     }
                     catch (Exception ex)

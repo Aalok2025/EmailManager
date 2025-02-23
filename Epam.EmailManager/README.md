@@ -56,7 +56,7 @@ Epam.EmailManager.Application
 			
 
 Epam.EmailManager.Application
-│── Epam.EmailManager.Application.Presentation (MVC Application)
+│── Epam.EmailManager.Application.Presentation (MVC Application)a
 -> takes care of connection string stored in application.json and handles dependency injection which is shared across solution
 -> Models (EF Core Models) 
 userDetails.cs( created by database first approach)
@@ -98,4 +98,85 @@ Database: SQL Server
 Data Access: ADO.NET
 Email Service: SMTP
 Logging: Custom EmailLogService
-																																																		-> (Send Welcome Mail to user with id=id) -> Epam.EmailManager.Infrastructure/Repository/IEmailServiceRepository.cs -> Epam.EmailManager.Application/Services/EmailService.cs -> (Send welcome mail to user with id)  + [ IEmailLogRepository.cs -> EmailLogService.cs ->  Log Email sent ]
+
+Epam.EmailManager.Domain/Entities/Delgates.cs : 
+namespace Epam.EmailManager.Domain.Entities
+{
+    public delegate void EmailSentHandler(string recipient, string subject, string body);
+}
+
+// This delegate (EmailSentHandler) defines a function signature for handling email-sent events.
+// It is used in EmailService<T> to notify when an email is successfully sent.
+
+Epam.EmailManager.Middleware/Log/EmailLogService.cs :
+namespace Email.EmailManager.Middleware.Log
+{
+    public class EmailLogService : IEmailLogRepository<string>
+    {
+        public void LogEmailDetails(string recipient, string subject, string body)
+        {
+            Console.WriteLine($"[LOG] Email Sent - To: {recipient}, Subject: {subject} at {DateTime.Now}");
+        }
+    }
+}
+Epam.EmailManager.Infrastructure/Repository/IEmailLogRepository.cs : 
+namespace Epam.EmailManager.Infrastructure.Repository
+{
+    public interface IEmailLogRepository<T>
+    {
+        void LogEmailDetails(T recipient, T subject, T body);
+    }
+}
+Epam.EmailManager.Application/Services/EmailService.cs :
+namespace Epam.EmailManager.Application.Services
+{
+    public class EmailService<T> :IEmailServiceRepository <T>
+    {
+        public event EmailSentHandler OnEmailSent;
+        private readonly IEmailLogRepository<string> _emailLogService = new EmailLogService(); 
+        
+        public EmailService(IConfiguration configuration)
+        {
+            _emailConfiguration = configuration;
+            // Subscribe the logging method to the event
+            OnEmailSent += _emailLogService.LogEmailDetails;
+        }
+        
+        public async Task<bool> sendEmailToAllUsers(List<User> users)
+        {
+            foreach (var user in users)
+            {
+                try
+                {
+                    // 1. Create a new message
+                    // 2. Set the body of the message
+                    // 3. Setup and use the SMTP client
+                    using var client = new SmtpClient();
+                    try
+                    {
+                        client.Connect();
+                        client.Authenticate();
+                        await client.SendAsync(message);
+
+                        // Trigger the event by invoking so that all subscribers listening to event executes the methods and logs the email sent
+                        OnEmailSent?.Invoke(user.Email, message.Subject, message.Body.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error: " + ex.ToString());
+                        return false;
+                    }
+                    finally
+                    {
+                        client.Disconnect(true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.ToString());   
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
